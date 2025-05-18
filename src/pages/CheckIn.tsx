@@ -7,6 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, UserPlus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { guestsData } from '@/lib/mock-data';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const CheckIn = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +39,27 @@ const CheckIn = () => {
       title: "Guest Checked In",
       description: `Guest ID: ${guestId} has been successfully checked in.`
     });
+    
+    // In a real application, we would update the guest's status in the database
+    // and potentially redirect to a confirmation page or update the list
+    setSearchResults(prevResults => 
+      prevResults.map(guest => 
+        guest.id === guestId 
+          ? { ...guest, status: 'Checked In' } 
+          : guest
+      )
+    );
+  };
+
+  const handleNewWalkIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const guestName = formData.get('guestName') as string;
+    
+    toast({
+      title: "Walk-in Guest Created",
+      description: `${guestName} has been registered as a walk-in guest.`
+    });
   };
 
   return (
@@ -40,10 +70,54 @@ const CheckIn = () => {
             <h1 className="text-3xl font-bold tracking-tight">Check In</h1>
             <p className="text-muted-foreground">Process guest check-ins and manage arrivals.</p>
           </div>
-          <Button className="bg-hotel-primary hover:bg-hotel-dark">
-            <UserPlus className="mr-2 h-4 w-4" />
-            New Walk-in
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-hotel-primary hover:bg-hotel-dark">
+                <UserPlus className="mr-2 h-4 w-4" />
+                New Walk-in
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Register Walk-in Guest</DialogTitle>
+                <DialogDescription>
+                  Enter the details for the new walk-in guest.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleNewWalkIn} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <label htmlFor="guestName" className="text-sm font-medium">Guest Name</label>
+                  <Input id="guestName" name="guestName" placeholder="Enter guest name" required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="guestEmail" className="text-sm font-medium">Email Address</label>
+                  <Input id="guestEmail" name="guestEmail" type="email" placeholder="Enter email address" />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="guestPhone" className="text-sm font-medium">Phone Number</label>
+                  <Input id="guestPhone" name="guestPhone" placeholder="Enter phone number" required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="roomType" className="text-sm font-medium">Room Type</label>
+                  <select 
+                    id="roomType" 
+                    name="roomType"
+                    className="w-full border border-input bg-background px-3 py-2 rounded-md"
+                    required
+                  >
+                    <option value="">Select room type</option>
+                    <option value="standard">Standard</option>
+                    <option value="deluxe">Deluxe</option>
+                    <option value="suite">Suite</option>
+                    <option value="presidential">Presidential Suite</option>
+                  </select>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Register Guest</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <Card>
@@ -77,6 +151,10 @@ const CheckIn = () => {
                         {guest.status === 'Reserved' ? (
                           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                             Reserved
+                          </span>
+                        ) : guest.status === 'Checked In' ? (
+                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                            Checked In
                           </span>
                         ) : (
                           <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
