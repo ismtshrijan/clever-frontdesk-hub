@@ -2,134 +2,255 @@
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DoorClosed, Filter, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { roomTypesData } from '@/lib/mock-data';
+import { Search, PlusCircle, Edit, Trash2, CheckSquare, ClipboardList } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-// Sample room data
+// Sample rooms data
 const roomsData = [
-  { 
-    number: "101", 
-    type: "Standard", 
-    status: "Occupied", 
-    guest: "Emma Thompson",
-    checkIn: "2023-05-15", 
-    checkOut: "2023-05-20", 
-    housekeeping: "Clean" 
+  {
+    id: "101",
+    type: "Standard",
+    beds: "1 Queen",
+    floor: "1",
+    status: "Occupied",
+    guestName: "Thomas Anderson",
+    cleaningStatus: "Clean",
+    price: "$129/night"
   },
-  { 
-    number: "102", 
-    type: "Standard", 
-    status: "Available", 
-    guest: null,
-    checkIn: null, 
-    checkOut: null, 
-    housekeeping: "Clean" 
+  {
+    id: "102",
+    type: "Standard",
+    beds: "2 Twin",
+    floor: "1",
+    status: "Available",
+    guestName: "",
+    cleaningStatus: "Clean",
+    price: "$129/night"
   },
-  { 
-    number: "201", 
-    type: "Deluxe", 
-    status: "Occupied", 
-    guest: "Michael Jordan",
-    checkIn: "2023-05-16", 
-    checkOut: "2023-05-22", 
-    housekeeping: "Clean" 
+  {
+    id: "201",
+    type: "Deluxe",
+    beds: "1 King",
+    floor: "2",
+    status: "Available",
+    guestName: "",
+    cleaningStatus: "Clean",
+    price: "$199/night"
   },
-  { 
-    number: "301", 
-    type: "Suite", 
-    status: "Maintenance", 
-    guest: null,
-    checkIn: null, 
-    checkOut: null, 
-    housekeeping: "Maintenance" 
+  {
+    id: "301",
+    type: "Suite",
+    beds: "1 King + Sofa",
+    floor: "3",
+    status: "Occupied",
+    guestName: "Jennifer Lawrence",
+    cleaningStatus: "Clean",
+    price: "$299/night"
   },
-  { 
-    number: "401", 
-    type: "Presidential Suite", 
-    status: "Available", 
-    guest: null,
-    checkIn: null, 
-    checkOut: null, 
-    housekeeping: "Clean" 
+  {
+    id: "401",
+    type: "Presidential",
+    beds: "1 King + 2 Queen",
+    floor: "4",
+    status: "Available",
+    guestName: "",
+    cleaningStatus: "Needs Cleaning",
+    price: "$499/night"
   }
 ];
 
 const Rooms = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRooms, setFilteredRooms] = useState(roomsData);
+  const { toast } = useToast();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // This would use a proper database query in production
-    const filtered = roomsData.filter(room => 
-      room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (room.guest && room.guest.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = roomsData.filter(
+      room => 
+        room.id.includes(searchTerm) ||
+        room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.guestName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredRooms(filtered);
+  };
+
+  const handleCreateRoom = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Room Created",
+      description: "New room has been successfully added to the system.",
+    });
+  };
+
+  const handleStatusChange = (roomId: string, newStatus: string) => {
+    toast({
+      title: "Room Status Updated",
+      description: `Room ${roomId} status changed to ${newStatus}.`,
+    });
+  };
+
+  const handleCleaningRequest = (roomId: string) => {
+    toast({
+      title: "Cleaning Request Submitted",
+      description: `Cleaning request submitted for Room ${roomId}.`,
+    });
+  };
+
+  const roomStatusColors: Record<string, string> = {
+    'Available': 'bg-green-100 text-green-800',
+    'Occupied': 'bg-blue-100 text-blue-800',
+    'Maintenance': 'bg-red-100 text-red-800',
+    'Reserved': 'bg-yellow-100 text-yellow-800',
+    'Clean': 'bg-green-100 text-green-800',
+    'Needs Cleaning': 'bg-yellow-100 text-yellow-800'
   };
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Rooms</h1>
-          <p className="text-muted-foreground">
-            Manage room availability, status, and assignments.
-          </p>
-        </div>
-        
-        {/* Room Type Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {roomTypesData.map((type, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{type.type}</p>
-                    <h3 className="text-2xl font-bold mt-1">{type.available}/{type.total}</h3>
-                    <p className="text-xs mt-1">
-                      <span className="text-green-500">{type.available} Available</span> • 
-                      <span className="text-blue-500 ml-1">{type.occupied} Occupied</span>
-                    </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Rooms</h1>
+            <p className="text-muted-foreground">
+              Manage hotel rooms and their status
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-hotel-primary hover:bg-hotel-dark">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Room
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Room</DialogTitle>
+                <DialogDescription>
+                  Enter the details for the new room.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateRoom} className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="roomNumber" className="text-sm font-medium">Room Number</label>
+                    <Input id="roomNumber" placeholder="e.g. 101" required />
                   </div>
-                  <div className="h-12 w-12 rounded-lg bg-hotel-primary/10 flex items-center justify-center text-hotel-primary">
-                    <DoorClosed className="h-6 w-6" />
+                  <div className="space-y-2">
+                    <label htmlFor="roomType" className="text-sm font-medium">Room Type</label>
+                    <Input id="roomType" placeholder="e.g. Standard" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="beds" className="text-sm font-medium">Beds</label>
+                    <Input id="beds" placeholder="e.g. 1 Queen" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="price" className="text-sm font-medium">Price per Night</label>
+                    <Input id="price" placeholder="e.g. $129" required />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <DialogFooter>
+                  <Button type="submit">Add Room</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-        
-        {/* Room List */}
+
+        {/* Room Statistics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Rooms</p>
+                  <h3 className="text-2xl font-bold mt-1">{roomsData.length}</h3>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Available</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {roomsData.filter(room => room.status === 'Available').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                  <CheckSquare className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Occupied</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {roomsData.filter(room => room.status === 'Occupied').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                  <CheckSquare className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Needs Cleaning</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {roomsData.filter(room => room.cleaningStatus === 'Needs Cleaning').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Rooms List */}
         <Card>
           <CardHeader>
-            <CardTitle>Room List</CardTitle>
+            <CardTitle>All Rooms</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4 mb-6">
-              <form onSubmit={handleSearch} className="flex gap-2 flex-1">
-                <Input
-                  placeholder="Search by room number or guest name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit">
-                  <Search className="h-4 w-4 mr-2" />
-                  Search
-                </Button>
-              </form>
-              
-              <Button variant="outline">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
+            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+              <Input
+                placeholder="Search rooms by number, type, status..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">
+                <Search className="h-4 w-4 mr-2" />
+                Search
               </Button>
-            </div>
+            </form>
             
             <div className="border rounded-lg overflow-hidden">
               <Table>
@@ -137,45 +258,71 @@ const Rooms = () => {
                   <TableRow>
                     <TableHead>Room</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Beds</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Guest</TableHead>
-                    <TableHead>Check In</TableHead>
-                    <TableHead>Check Out</TableHead>
-                    <TableHead>Housekeeping</TableHead>
+                    <TableHead>Cleaning</TableHead>
+                    <TableHead>Price</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRooms.map((room) => (
-                    <TableRow key={room.number}>
-                      <TableCell className="font-medium">{room.number}</TableCell>
+                    <TableRow key={room.id}>
+                      <TableCell>{room.id}</TableCell>
                       <TableCell>{room.type}</TableCell>
+                      <TableCell>{room.beds}</TableCell>
                       <TableCell>
-                        <Badge className={
-                          room.status === 'Available' ? "bg-green-100 text-green-800" :
-                          room.status === 'Occupied' ? "bg-blue-100 text-blue-800" :
-                          room.status === 'Maintenance' ? "bg-red-100 text-red-800" :
-                          "bg-yellow-100 text-yellow-800"
-                        }>
+                        <Badge className={roomStatusColors[room.status]}>
                           {room.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{room.guest || "-"}</TableCell>
-                      <TableCell>{room.checkIn || "-"}</TableCell>
-                      <TableCell>{room.checkOut || "-"}</TableCell>
                       <TableCell>
-                        <Badge className={
-                          room.housekeeping === 'Clean' ? "bg-green-100 text-green-800" :
-                          room.housekeeping === 'Dirty' ? "bg-red-100 text-red-800" :
-                          "bg-yellow-100 text-yellow-800"
-                        }>
-                          {room.housekeeping}
-                        </Badge>
+                        {room.guestName || "—"}
                       </TableCell>
                       <TableCell>
+                        <Badge className={roomStatusColors[room.cleaningStatus]}>
+                          {room.cleaningStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{room.price}</TableCell>
+                      <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">View</Button>
-                          <Button size="sm" variant="outline">Edit</Button>
+                          {room.status === 'Available' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(room.id, 'Reserved')}
+                            >
+                              Reserve
+                            </Button>
+                          ) : room.status === 'Occupied' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(room.id, 'Available')}
+                            >
+                              Checkout
+                            </Button>
+                          ) : null}
+                          
+                          {room.cleaningStatus === 'Clean' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleCleaningRequest(room.id)}
+                            >
+                              Request Cleaning
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(room.id, 'Clean')}
+                            >
+                              Mark Clean
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -185,7 +332,7 @@ const Rooms = () => {
               
               {filteredRooms.length === 0 && (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No rooms found.</p>
+                  <p className="text-muted-foreground">No rooms found matching your criteria.</p>
                 </div>
               )}
             </div>

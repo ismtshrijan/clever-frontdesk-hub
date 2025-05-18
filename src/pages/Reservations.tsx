@@ -1,17 +1,159 @@
 
-import React from "react";
+import React, { useState } from "react";
 import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Search, PlusCircle, Calendar, Edit, Trash2, Check } from "lucide-react";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+
+// Sample reservation data
+const reservationsData = [
+  {
+    id: "RES1001",
+    guestName: "Michael Brown",
+    roomType: "Deluxe",
+    roomNumber: "205",
+    checkIn: "2023-05-18",
+    checkOut: "2023-05-22",
+    status: "Confirmed",
+    paymentStatus: "Paid",
+    totalAmount: "$850"
+  },
+  {
+    id: "RES1002",
+    guestName: "Sarah Johnson",
+    roomType: "Suite",
+    roomNumber: "310",
+    checkIn: "2023-05-19",
+    checkOut: "2023-05-24",
+    status: "Pending",
+    paymentStatus: "Unpaid",
+    totalAmount: "$1200"
+  },
+  {
+    id: "RES1003",
+    guestName: "Robert Williams",
+    roomType: "Standard",
+    roomNumber: "112",
+    checkIn: "2023-05-20",
+    checkOut: "2023-05-21",
+    status: "Confirmed",
+    paymentStatus: "Paid",
+    totalAmount: "$150"
+  },
+  {
+    id: "RES1004",
+    guestName: "Jennifer Davis",
+    roomType: "Presidential Suite",
+    roomNumber: "501",
+    checkIn: "2023-05-22",
+    checkOut: "2023-05-29",
+    status: "Confirmed",
+    paymentStatus: "Partially Paid",
+    totalAmount: "$4200"
+  }
+];
 
 const Reservations = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredReservations, setFilteredReservations] = useState(reservationsData);
+  const { toast } = useToast();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const filtered = reservationsData.filter(
+      reservation => 
+        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.roomNumber.includes(searchTerm)
+    );
+    setFilteredReservations(filtered);
+  };
+
+  const handleConfirmReservation = (id: string) => {
+    toast({
+      title: "Reservation Confirmed",
+      description: `Reservation ${id} has been confirmed.`,
+    });
+  };
+
+  const handleDeleteReservation = (id: string) => {
+    toast({
+      title: "Reservation Deleted",
+      description: `Reservation ${id} has been deleted.`,
+      variant: "destructive",
+    });
+  };
+
+  const handleCreateReservation = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Reservation Created",
+      description: "New reservation has been successfully created.",
+    });
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reservations</h1>
-          <p className="text-muted-foreground">
-            Manage hotel reservations and bookings
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Reservations</h1>
+            <p className="text-muted-foreground">
+              Manage hotel reservations and bookings
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-hotel-primary hover:bg-hotel-dark">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Reservation
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Reservation</DialogTitle>
+                <DialogDescription>
+                  Enter the details for the new reservation.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateReservation} className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="guestName" className="text-sm font-medium">Guest Name</label>
+                    <Input id="guestName" placeholder="Enter guest name" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="roomType" className="text-sm font-medium">Room Type</label>
+                    <Input id="roomType" placeholder="Select room type" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="checkIn" className="text-sm font-medium">Check-in Date</label>
+                    <Input id="checkIn" type="date" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="checkOut" className="text-sm font-medium">Check-out Date</label>
+                    <Input id="checkOut" type="date" required />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Create Reservation</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Card>
@@ -22,7 +164,99 @@ const Reservations = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>Reservation content will be displayed here</p>
+            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+              <Input
+                placeholder="Search reservations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+            </form>
+            
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Guest</TableHead>
+                    <TableHead>Room</TableHead>
+                    <TableHead>Check In/Out</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReservations.map((reservation) => (
+                    <TableRow key={reservation.id}>
+                      <TableCell>{reservation.id}</TableCell>
+                      <TableCell>{reservation.guestName}</TableCell>
+                      <TableCell>
+                        {`${reservation.roomType} (${reservation.roomNumber})`}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs">In: {reservation.checkIn}</span>
+                          <span className="text-xs">Out: {reservation.checkOut}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={
+                          reservation.status === 'Confirmed' ? "bg-green-100 text-green-800" : 
+                          "bg-yellow-100 text-yellow-800"
+                        }>
+                          {reservation.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={
+                          reservation.paymentStatus === 'Paid' ? "bg-green-100 text-green-800" : 
+                          reservation.paymentStatus === 'Unpaid' ? "bg-red-100 text-red-800" :
+                          "bg-yellow-100 text-yellow-800"
+                        }>
+                          {reservation.paymentStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          {reservation.status === 'Pending' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleConfirmReservation(reservation.id)}
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Confirm
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-500"
+                            onClick={() => handleDeleteReservation(reservation.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {filteredReservations.length === 0 && (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground">No reservations found.</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

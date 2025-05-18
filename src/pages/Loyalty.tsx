@@ -1,127 +1,279 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Award, Search, Star, Gift, BadgePercent } from "lucide-react";
-import { guestsData } from '@/lib/mock-data';
+import { Input } from "@/components/ui/input";
+import { Search, PlusCircle, Award, Gift, Trophy, Star, Edit } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-// Sample loyalty tiers
-const loyaltyTiers = [
+// Sample loyalty members data
+const loyaltyMembersData = [
   {
-    name: "Bronze",
-    requiredPoints: 0,
-    benefits: ["Free Wi-Fi", "Late checkout (when available)"],
-    icon: Star
+    id: "L1001",
+    name: "Jennifer Lawrence",
+    email: "jennifer@example.com",
+    phone: "555-123-4567",
+    tier: "Diamond",
+    points: 15400,
+    joined: "2021-03-15",
+    lastStay: "2023-05-10"
   },
   {
-    name: "Silver",
-    requiredPoints: 5000,
-    benefits: ["10% discount on dining", "Room upgrades (when available)", "Early check-in"],
-    icon: Award
+    id: "L1002",
+    name: "Michael Brown",
+    email: "michael@example.com",
+    phone: "555-987-6543",
+    tier: "Gold",
+    points: 7800,
+    joined: "2022-01-20",
+    lastStay: "2023-04-28"
   },
   {
-    name: "Gold",
-    requiredPoints: 10000,
-    benefits: ["15% discount on all services", "Guaranteed room upgrades", "Welcome gift"],
-    icon: Gift
+    id: "L1003",
+    name: "Sarah Johnson",
+    email: "sarah@example.com",
+    phone: "555-789-1234",
+    tier: "Silver",
+    points: 3200,
+    joined: "2022-09-05",
+    lastStay: "2023-05-05"
   },
   {
-    name: "Diamond",
-    requiredPoints: 25000,
-    benefits: ["25% discount on all services", "Guaranteed suite upgrades", "Free breakfast", "Airport transfers"],
-    icon: BadgePercent
+    id: "L1004",
+    name: "Robert Williams",
+    email: "robert@example.com",
+    phone: "555-456-7890",
+    tier: "Bronze",
+    points: 850,
+    joined: "2023-02-10",
+    lastStay: "2023-04-15"
   }
 ];
 
-// Sample rewards
-const loyaltyRewards = [
-  { id: "R1", name: "Free Night Stay", pointsCost: 15000, available: true },
-  { id: "R2", name: "Spa Treatment", pointsCost: 5000, available: true },
-  { id: "R3", name: "Airport Transfer", pointsCost: 2500, available: true },
-  { id: "R4", name: "Dining Credit", pointsCost: 3000, available: true },
-  { id: "R5", name: "Room Upgrade", pointsCost: 4000, available: true },
-];
+const tierBenefits = {
+  "Diamond": ["Free room upgrades", "Late checkout", "Welcome gift", "24/7 concierge", "50% bonus points"],
+  "Gold": ["Room upgrades (subject to availability)", "Late checkout", "Welcome drink", "25% bonus points"],
+  "Silver": ["Early check-in (subject to availability)", "Welcome drink", "10% bonus points"],
+  "Bronze": ["5% bonus points"]
+};
 
 const Loyalty = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredGuests, setFilteredGuests] = useState(guestsData);
+  const [filteredMembers, setFilteredMembers] = useState(loyaltyMembersData);
   const { toast } = useToast();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // This would use a proper database query in production
-    const filtered = guestsData.filter(guest => 
-      guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.id.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = loyaltyMembersData.filter(
+      member => 
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.phone.includes(searchTerm)
     );
-    setFilteredGuests(filtered);
+    setFilteredMembers(filtered);
   };
 
-  const handleRedeemReward = (guestId: string, rewardId: string, pointsCost: number) => {
-    // This would call sp_RedeemLoyaltyReward in production
+  const handleAddMember = (e: React.FormEvent) => {
+    e.preventDefault();
     toast({
-      title: "Reward Redeemed",
-      description: `Reward ID: ${rewardId} has been successfully redeemed for guest ${guestId}.`,
+      title: "Member Added",
+      description: "New loyalty member has been successfully added.",
     });
+  };
+
+  const handleAwardPoints = (memberId: string, points: number) => {
+    toast({
+      title: "Points Awarded",
+      description: `${points} points have been awarded to member ${memberId}.`,
+    });
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'Diamond':
+        return 'bg-purple-100 text-purple-800';
+      case 'Gold':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Silver':
+        return 'bg-slate-100 text-slate-800';
+      default:
+        return 'bg-amber-100 text-amber-800';
+    }
   };
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Loyalty Program</h1>
-          <p className="text-muted-foreground">
-            Manage guest loyalty tiers, points, and rewards.
-          </p>
-        </div>
-        
-        {/* Loyalty Tiers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {loyaltyTiers.map((tier, index) => {
-            const TierIcon = tier.icon;
-            return (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className={`h-12 w-12 rounded-full ${
-                      tier.name === 'Bronze' ? 'bg-amber-700/20 text-amber-700' :
-                      tier.name === 'Silver' ? 'bg-gray-300/20 text-gray-500' :
-                      tier.name === 'Gold' ? 'bg-yellow-400/20 text-yellow-600' :
-                      'bg-blue-400/20 text-blue-600'
-                    } flex items-center justify-center mb-4`}>
-                      <TierIcon className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-xl font-bold">{tier.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{tier.requiredPoints}+ points</p>
-                    <ul className="mt-4 text-sm space-y-2">
-                      {tier.benefits.map((benefit, i) => (
-                        <li key={i} className="flex items-center justify-center">
-                          <span className="w-1 h-1 rounded-full bg-hotel-primary mr-2"></span>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Loyalty Program</h1>
+            <p className="text-muted-foreground">
+              Manage the hotel loyalty program and member benefits
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-hotel-primary hover:bg-hotel-dark">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Member
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Loyalty Member</DialogTitle>
+                <DialogDescription>
+                  Enter details to add a new member to the loyalty program.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddMember} className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium">Full Name</label>
+                    <Input id="name" placeholder="Enter full name" required />
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="text-sm font-medium">Email</label>
+                    <Input id="email" type="email" placeholder="Enter email address" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="phone" className="text-sm font-medium">Phone Number</label>
+                    <Input id="phone" placeholder="Enter phone number" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="tier" className="text-sm font-medium">Initial Tier</label>
+                    <Input id="tier" placeholder="Bronze" defaultValue="Bronze" readOnly />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Add Member</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {/* Guest Loyalty */}
+        {/* Tier Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Diamond Members</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {loyaltyMembersData.filter(member => member.tier === 'Diamond').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                  <Trophy className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Gold Members</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {loyaltyMembersData.filter(member => member.tier === 'Gold').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-600">
+                  <Star className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Silver Members</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {loyaltyMembersData.filter(member => member.tier === 'Silver').length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <Award className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Members</p>
+                  <h3 className="text-2xl font-bold mt-1">
+                    {loyaltyMembersData.length}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+                  <Gift className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tier Benefits Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Guest Loyalty Status</CardTitle>
+            <CardTitle>Loyalty Tier Benefits</CardTitle>
+            <CardDescription>
+              Benefits available to different membership tiers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {Object.entries(tierBenefits).map(([tier, benefits]) => (
+                <Card key={tier} className="overflow-hidden">
+                  <CardHeader className={
+                    tier === 'Diamond' ? 'bg-purple-100' :
+                    tier === 'Gold' ? 'bg-yellow-100' :
+                    tier === 'Silver' ? 'bg-slate-100' :
+                    'bg-amber-100'
+                  }>
+                    <CardTitle className="text-center">{tier}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <ul className="list-disc pl-5 space-y-1">
+                      {benefits.map((benefit, index) => (
+                        <li key={index} className="text-sm">{benefit}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Loyalty Members List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Loyalty Members</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSearch} className="flex gap-2 mb-6">
               <Input
-                placeholder="Search guests..."
+                placeholder="Search members by name, email, ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="flex-1"
@@ -136,50 +288,68 @@ const Loyalty = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Guest</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
                     <TableHead>Tier</TableHead>
                     <TableHead>Points</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead>Last Stay</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredGuests.map((guest) => (
-                    <TableRow key={guest.id}>
+                  {filteredMembers.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>{member.id}</TableCell>
+                      <TableCell>{member.name}</TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{guest.name}</div>
-                          <div className="text-sm text-muted-foreground">{guest.email}</div>
+                          <div className="text-sm">{member.email}</div>
+                          <div className="text-xs text-muted-foreground">{member.phone}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center">
-                          <Award className={`h-4 w-4 mr-1 ${
-                            guest.loyaltyTier === 'Diamond' ? 'text-blue-500' : 
-                            guest.loyaltyTier === 'Gold' ? 'text-yellow-500' :
-                            guest.loyaltyTier === 'Silver' ? 'text-gray-400' : 
-                            'text-amber-700'
-                          }`} />
-                          {guest.loyaltyTier}
-                        </div>
+                        <Badge className={getTierColor(member.tier)}>
+                          {member.tier}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{guest.loyaltyPoints}</TableCell>
+                      <TableCell>{member.points.toLocaleString()}</TableCell>
+                      <TableCell>{member.joined}</TableCell>
+                      <TableCell>{member.lastStay}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" className="bg-hotel-primary text-white hover:bg-hotel-dark">
-                            View History
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => {
-                              // This would open a modal in a real application
-                              toast({
-                                title: "Add Points",
-                                description: `Adding points for ${guest.name}`,
-                              });
-                            }}
-                          >
-                            Add Points
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                Award Points
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Award Points</DialogTitle>
+                                <DialogDescription>
+                                  Award loyalty points to {member.name}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <form className="space-y-4 mt-4" onSubmit={(e) => {
+                                e.preventDefault();
+                                const form = e.target as HTMLFormElement;
+                                const points = parseInt((form.elements.namedItem('points') as HTMLInputElement).value);
+                                handleAwardPoints(member.id, points);
+                              }}>
+                                <div className="space-y-2">
+                                  <label htmlFor="points" className="text-sm font-medium">Points</label>
+                                  <Input id="points" name="points" type="number" defaultValue="100" min="1" required />
+                                </div>
+                                <DialogFooter>
+                                  <Button type="submit">Award Points</Button>
+                                </DialogFooter>
+                              </form>
+                            </DialogContent>
+                          </Dialog>
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -188,49 +358,11 @@ const Loyalty = () => {
                 </TableBody>
               </Table>
               
-              {filteredGuests.length === 0 && (
+              {filteredMembers.length === 0 && (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No guests found.</p>
+                  <p className="text-muted-foreground">No members found matching your criteria.</p>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Available Rewards */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Rewards</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {loyaltyRewards.map((reward) => (
-                <Card key={reward.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{reward.name}</h3>
-                        <p className="text-sm text-muted-foreground">{reward.pointsCost} points</p>
-                      </div>
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-hotel-primary/10 text-hotel-primary">
-                        <Gift className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full mt-4" 
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Select a guest",
-                          description: "Please select a guest to redeem this reward.",
-                        });
-                      }}
-                    >
-                      Redeem
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </CardContent>
         </Card>
