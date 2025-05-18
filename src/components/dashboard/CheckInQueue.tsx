@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckSquare, UserPlus } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface QueueItem {
   id: string;

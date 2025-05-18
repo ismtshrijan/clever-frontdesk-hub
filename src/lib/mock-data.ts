@@ -11,25 +11,25 @@ export const dashboardStats = [
   {
     title: "Available Rooms",
     value: "42",
-    icon: <DoorClosed className="h-6 w-6" />,
+    icon: DoorClosed,
     change: { value: 8, isPositive: true },
   },
   {
     title: "Current Guests",
     value: "86",
-    icon: <Users className="h-6 w-6" />,
+    icon: Users,
     change: { value: 12, isPositive: true },
   },
   {
     title: "Today's Check-ins",
     value: "24",
-    icon: <Calendar className="h-6 w-6" />,
+    icon: Calendar,
     change: { value: 5, isPositive: false },
   },
   {
     title: "Revenue (Today)",
     value: "$8,245",
-    icon: <BadgeDollarSign className="h-6 w-6" />,
+    icon: BadgeDollarSign,
     change: { value: 10, isPositive: true },
   },
 ];

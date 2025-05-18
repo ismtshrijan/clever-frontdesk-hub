@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   change?: {
     value: number;
     isPositive: boolean;
@@ -17,7 +18,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ 
   title, 
   value, 
-  icon, 
+  icon: Icon, 
   change,
   className 
 }) => {
@@ -40,7 +41,7 @@ const StatCard: React.FC<StatCardProps> = ({
           </div>
           
           <div className="h-12 w-12 rounded-lg bg-hotel-primary/10 flex items-center justify-center text-hotel-primary">
-            {icon}
+            <Icon className="h-6 w-6" />
           </div>
         </div>
       </CardContent>
