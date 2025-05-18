@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import PaymentStatusSelector from "@/components/reservations/PaymentStatusSelector";
 
 // Sample reservation data
 const reservationsData = [
@@ -65,6 +66,8 @@ const reservationsData = [
     totalAmount: "$4200"
   }
 ];
+
+type PaymentStatus = 'Paid' | 'Unpaid' | 'Pending' | 'Partially Paid';
 
 const Reservations = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,6 +139,17 @@ const Reservations = () => {
     toast({
       title: "Edit Reservation",
       description: `Opening editor for reservation ${id}.`,
+    });
+  };
+
+  const handlePaymentStatusChange = (reservationId: string, newStatus: PaymentStatus) => {
+    setFilteredReservations(prev => 
+      prev.map(res => res.id === reservationId ? {...res, paymentStatus: newStatus} : res)
+    );
+    
+    toast({
+      title: "Payment Status Updated",
+      description: `Payment status for reservation ${reservationId} changed to ${newStatus}.`,
     });
   };
 
@@ -232,6 +246,7 @@ const Reservations = () => {
                     <TableHead>Check In/Out</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Payment</TableHead>
+                    <TableHead>Amount</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -258,14 +273,13 @@ const Reservations = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={
-                          reservation.paymentStatus === 'Paid' ? "bg-green-100 text-green-800" : 
-                          reservation.paymentStatus === 'Unpaid' ? "bg-red-100 text-red-800" :
-                          "bg-yellow-100 text-yellow-800"
-                        }>
-                          {reservation.paymentStatus}
-                        </Badge>
+                        <PaymentStatusSelector 
+                          currentStatus={reservation.paymentStatus as PaymentStatus}
+                          reservationId={reservation.id}
+                          onStatusChange={handlePaymentStatusChange}
+                        />
                       </TableCell>
+                      <TableCell>{reservation.totalAmount}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           {reservation.status === 'Pending' && (
