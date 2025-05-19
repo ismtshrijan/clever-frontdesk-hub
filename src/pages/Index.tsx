@@ -20,7 +20,7 @@ const Dashboard = () => {
   const handleCheckIn = (id: string) => {
     // This would call the sp_SmartCheckIn procedure in the future
     toast({
-      title: "Check-in initiated",
+      title: "Check-in successful",
       description: `Guest ID: ${id} has been checked in.`,
     });
     // After API integration, this would refresh the queue data

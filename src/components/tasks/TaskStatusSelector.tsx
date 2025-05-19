@@ -59,7 +59,7 @@ export const TaskStatusSelector: React.FC<TaskStatusSelectorProps> = ({
           </Badge>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-white">
         <DropdownMenuItem 
           onClick={() => onStatusChange(taskId, 'Completed')}
           className="flex items-center gap-2 cursor-pointer"
