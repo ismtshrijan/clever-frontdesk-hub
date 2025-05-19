@@ -55,7 +55,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
           </Badge>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-white">
         <DropdownMenuItem 
           onClick={() => onStatusChange(reservationId, 'Confirmed')}
           className="flex items-center gap-2 cursor-pointer"

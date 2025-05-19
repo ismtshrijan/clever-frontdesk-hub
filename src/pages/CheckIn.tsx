@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, UserPlus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { guestsData } from '@/lib/mock-data';
+import CheckInStatusSelector from '@/components/check-in/CheckInStatusSelector';
 import { 
   Dialog,
   DialogContent,
@@ -16,6 +17,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+type CheckInStatus = 'Reserved' | 'Checked In' | 'Confirmed' | 'No Show';
 
 const CheckIn = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,22 +36,17 @@ const CheckIn = () => {
     setSearchResults(results);
   };
 
-  const handleCheckIn = (guestId: string) => {
-    // This would call sp_SmartCheckIn in production
-    toast({
-      title: "Guest Checked In",
-      description: `Guest ID: ${guestId} has been successfully checked in.`
-    });
-    
-    // In a real application, we would update the guest's status in the database
-    // and potentially redirect to a confirmation page or update the list
-    setSearchResults(prevResults => 
-      prevResults.map(guest => 
-        guest.id === guestId 
-          ? { ...guest, status: 'Checked In' } 
-          : guest
-      )
+  const handleStatusChange = (guestId: string, newStatus: CheckInStatus) => {
+    // Update the guest status in our state
+    setSearchResults(prev => 
+      prev.map(guest => guest.id === guestId ? {...guest, status: newStatus} : guest)
     );
+    
+    // Show a toast notification
+    toast({
+      title: "Guest Status Updated",
+      description: `Guest ${guestId} status changed to ${newStatus}.`,
+    });
   };
 
   const handleNewWalkIn = (e: React.FormEvent) => {
@@ -148,19 +146,12 @@ const CheckIn = () => {
                         {guest.email} • {guest.phone}
                       </div>
                       <div className="flex gap-2 mt-1">
-                        {guest.status === 'Reserved' ? (
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            Reserved
-                          </span>
-                        ) : guest.status === 'Checked In' ? (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                            Checked In
-                          </span>
-                        ) : (
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                            {guest.status}
-                          </span>
-                        )}
+                        <CheckInStatusSelector 
+                          currentStatus={guest.status}
+                          guestId={guest.id}
+                          onStatusChange={handleStatusChange}
+                        />
+                        
                         {guest.vip && (
                           <span className="bg-hotel-accent/20 text-hotel-dark text-xs px-2 py-1 rounded-full">
                             VIP
@@ -168,13 +159,6 @@ const CheckIn = () => {
                         )}
                       </div>
                     </div>
-                    <Button 
-                      onClick={() => handleCheckIn(guest.id)}
-                      disabled={guest.status !== 'Reserved'}
-                      className="bg-hotel-primary hover:bg-hotel-dark"
-                    >
-                      Check In
-                    </Button>
                   </div>
                 ))}
               </div>
