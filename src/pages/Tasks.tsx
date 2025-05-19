@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,10 +12,13 @@ import {
   Clock, 
   AlertCircle, 
   User,
-  ChevronDown
+  ChevronDown,
+  Edit,
+  Trash2 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
+import TaskStatusSelector from '@/components/tasks/TaskStatusSelector';
 
 // Sample tasks data
 const tasksData = [
@@ -71,6 +73,8 @@ const taskSummary = {
   urgent: tasksData.filter(task => task.priority === 'Urgent').length
 };
 
+type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
+
 const Tasks = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredTasks, setFilteredTasks] = useState(tasksData);
@@ -87,11 +91,33 @@ const Tasks = () => {
     setFilteredTasks(filtered);
   };
 
-  const handleStatusChange = (taskId: string, newStatus: string) => {
-    // This would update the database in production
+  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    // Update the task status in our state
+    setFilteredTasks(prev => 
+      prev.map(task => task.id === taskId ? {...task, status: newStatus} : task)
+    );
+    
+    // Show a toast notification
     toast({
       title: "Task Status Updated",
       description: `Task ${taskId} status changed to ${newStatus}.`,
+    });
+  };
+
+  const handleEditTask = (taskId: string) => {
+    toast({
+      title: "Edit Task",
+      description: `Opening editor for task ${taskId}.`,
+    });
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setFilteredTasks(prev => prev.filter(task => task.id !== taskId));
+    
+    toast({
+      title: "Task Deleted",
+      description: `Task ${taskId} has been deleted.`,
+      variant: "destructive",
     });
   };
 
@@ -233,13 +259,11 @@ const Tasks = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={
-                          task.status === 'Pending' ? "bg-yellow-100 text-yellow-800" :
-                          task.status === 'In Progress' ? "bg-blue-100 text-blue-800" :
-                          "bg-green-100 text-green-800"
-                        }>
-                          {task.status}
-                        </Badge>
+                        <TaskStatusSelector 
+                          currentStatus={task.status as TaskStatus}
+                          taskId={task.id}
+                          onStatusChange={handleStatusChange}
+                        />
                       </TableCell>
                       <TableCell>{task.dueDate}</TableCell>
                       <TableCell>
@@ -247,18 +271,17 @@ const Tasks = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            className={task.status === "Completed" ? "bg-gray-100" : ""}
-                            disabled={task.status === "Completed"}
-                            onClick={() => handleStatusChange(task.id, "Completed")}
+                            onClick={() => handleEditTask(task.id)}
                           >
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                            Complete
+                            <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
                             size="sm" 
                             variant="outline"
+                            className="text-red-500"
+                            onClick={() => handleDeleteTask(task.id)}
                           >
-                            <ChevronDown className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
