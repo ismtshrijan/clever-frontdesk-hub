@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import PaymentStatusSelector from "@/components/reservations/PaymentStatusSelector";
+import StatusSelector from "@/components/reservations/StatusSelector";
 
 // Sample reservation data
 const reservationsData = [
@@ -68,6 +68,7 @@ const reservationsData = [
 ];
 
 type PaymentStatus = 'Paid' | 'Unpaid' | 'Pending' | 'Partially Paid';
+type ReservationStatus = 'Confirmed' | 'Pending';
 
 const Reservations = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,14 +86,14 @@ const Reservations = () => {
     setFilteredReservations(filtered);
   };
 
-  const handleConfirmReservation = (id: string) => {
+  const handleStatusChange = (id: string, newStatus: ReservationStatus) => {
     setFilteredReservations(prev => 
-      prev.map(res => res.id === id ? {...res, status: "Confirmed"} : res)
+      prev.map(res => res.id === id ? {...res, status: newStatus} : res)
     );
     
     toast({
-      title: "Reservation Confirmed",
-      description: `Reservation ${id} has been confirmed.`,
+      title: "Reservation Status Updated",
+      description: `Reservation ${id} status changed to ${newStatus}.`,
     });
   };
 
@@ -265,12 +266,11 @@ const Reservations = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={
-                          reservation.status === 'Confirmed' ? "bg-green-100 text-green-800" : 
-                          "bg-yellow-100 text-yellow-800"
-                        }>
-                          {reservation.status}
-                        </Badge>
+                        <StatusSelector 
+                          currentStatus={reservation.status as ReservationStatus}
+                          reservationId={reservation.id}
+                          onStatusChange={handleStatusChange}
+                        />
                       </TableCell>
                       <TableCell>
                         <PaymentStatusSelector 
@@ -282,16 +282,6 @@ const Reservations = () => {
                       <TableCell>{reservation.totalAmount}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          {reservation.status === 'Pending' && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => handleConfirmReservation(reservation.id)}
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Confirm
-                            </Button>
-                          )}
                           <Button 
                             size="sm" 
                             variant="outline"
